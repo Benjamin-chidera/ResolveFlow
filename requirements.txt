@@ -1,0 +1,9 @@
+fastapi[standard]
+sqlmodel
+uvicorn[standard]
+langchain
+langgraph
+langchain-ollama
+langfuse
+pytest
+redis

@@ -1,0 +1,71 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: resolveflow_app
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=development
+      - DATABASE_URL=sqlite:////app/data/resolveflow.db
+      - REDIS_URL=redis://redis:6379/0
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - OLLAMA_MODEL=llama3.2
+    volumes:
+      - .:/app
+      - ./data:/app/data
+      - /app/.venv
+    depends_on:
+      redis:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: resolveflow_worker
+    environment:
+      - APP_ENV=development
+      - DATABASE_URL=sqlite:////app/data/resolveflow.db
+      - REDIS_URL=redis://redis:6379/0
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - OLLAMA_MODEL=llama3.2
+    volumes:
+      - .:/app
+      - ./data:/app/data
+      - /app/.venv
+    depends_on:
+      redis:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+    command: python -m app.worker
+
+  redis:
+    image: redis:7-alpine
+    container_name: resolveflow_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: resolveflow_ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+volumes:
+  redis_data:
+  ollama_data:
