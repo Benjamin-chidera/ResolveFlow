@@ -61,6 +61,71 @@ python main.py
 
 ---
 
+## Visual Terminal Flow Preview
+
+```text
+WELCOME TO RESOLVEFLOW / LENFI UK
+─────────────────────────────────
+First-time setup
+Name: Benjamin Chidera
+Choose PIN: ••••
+Confirm PIN: ••••
+
+Account created
+Account number: 84920101
+Sort code:      04-00-75
+
+HOME
+─────────────────────────────────
+Benjamin Chidera
+Available balance: £150.00
+
+Recent incoming payments
+• £150.00 from Monzo     Credited
+• £500.00 from Monzo     Awaiting allocation
+• £180.00 from Barclays  Pending
+
+1. Home
+2. Incoming payments
+3. Help
+4. Log out
+9. Reset demo data
+0. Exit
+
+INCOMING PAYMENT → £500 from Monzo
+─────────────────────────────────
+Rail status: Settled
+Account status: Awaiting allocation
+
+ResolveFlow has received the payment,
+but it has not yet been added to your balance.
+
+1. Get help with this payment
+2. Chat with us
+0. Back
+
+HELP → Incoming bank transfer
+─────────────────────────────────
+Choose a payment, or report one missing.
+
+Agent: I can help check your £250 transfer from Monzo.
+       I cannot yet find a settled receipt in our records.
+
+You: I sent it yesterday.
+
+Agent: I’ve opened a provider trace. Your balance will not
+       change unless we receive verified settlement evidence.
+```
+
+### Possible Investigation Outcomes:
+- **Settled + uniquely matched** $\rightarrow$ Safely credited to Benjamin's balance
+- **Pending** $\rightarrow$ Wait for final rail settlement
+- **No receipt** $\rightarrow$ Provider trace opened (`WAITING_PROVIDER`)
+- **Failed / reversed** $\rightarrow$ No credit posted
+- **Ambiguous / restricted** $\rightarrow$ Routed to human payment-review team
+
+---
+
 ## Running the Automated Test Suite
 
 ```bash
