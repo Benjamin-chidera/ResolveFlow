@@ -61,68 +61,175 @@ python main.py
 
 ---
 
-## Visual Terminal Flow Preview
+## Interactive Terminal Flow & Screen Walkthrough
+
+Here is what each screen looks like when you run `python main.py`, including exactly what happens behind the scenes at every step:
+
+### Screen 1: First-Time Setup & Onboarding
+On initial launch, the user creates Benjamin's profile and sets a 4-digit PIN.
 
 ```text
-WELCOME TO RESOLVEFLOW / LENFI UK
-─────────────────────────────────
-First-time setup
-Name: Benjamin Chidera
-Choose PIN: ••••
-Confirm PIN: ••••
+========================================================================
+  RESOLVEFLOW / LENFI UK — FIRST-TIME CUSTOMER SETUP (MVP DEMO)
+========================================================================
+  Welcome to ResolveFlow (LenFi UK). Let's set up your receiving bank
+  profile and choose a 4-digit PIN. (Note: Demo authentication only;
+  your PIN is salted and hashed with PBKDF2-SHA256 in SQLite.)
 
-Account created
-Account number: 84920101
-Sort code:      04-00-75
+  Full Name [Press Enter for 'Benjamin Chidera']: Benjamin Chidera
+  Choose a 4-digit numeric PIN (or '0' to exit): 2468
+  Confirm your 4-digit PIN: 2468
 
-HOME
-─────────────────────────────────
-Benjamin Chidera
-Available balance: £150.00
-
-Recent incoming payments
-• £150.00 from Monzo     Credited
-• £500.00 from Monzo     Awaiting allocation
-• £180.00 from Barclays  Pending
-
-1. Home
-2. Incoming payments
-3. Help
-4. Log out
-9. Reset demo data
-0. Exit
-
-INCOMING PAYMENT → £500 from Monzo
-─────────────────────────────────
-Rail status: Settled
-Account status: Awaiting allocation
-
-ResolveFlow has received the payment,
-but it has not yet been added to your balance.
-
-1. Get help with this payment
-2. Chat with us
-0. Back
-
-HELP → Incoming bank transfer
-─────────────────────────────────
-Choose a payment, or report one missing.
-
-Agent: I can help check your £250 transfer from Monzo.
-       I cannot yet find a settled receipt in our records.
-
-You: I sent it yesterday.
-
-Agent: I’ve opened a provider trace. Your balance will not
-       change unless we receive verified settlement evidence.
+------------------------------------------------------------------------
+  ACCOUNT SETUP CONFIRMED
+------------------------------------------------------------------------
+  Account Holder:    Benjamin Chidera
+  Receiving Bank:    ResolveFlow / LenFi UK
+  Account Number:    84920101
+  Sort Code:         04-00-75
+  Internal Ref:      ACC-LEN-001
+  PIN Security:      PBKDF2-HMAC-SHA256 hash stored (plain PIN discarded)
+------------------------------------------------------------------------
 ```
+* **What happens**: The PIN is salted (`secrets.token_hex(16)`) and hashed using `PBKDF2-HMAC-SHA256` with `120,000` iterations. The plain PIN is immediately discarded. A stable mock account number (`84920101`) and sort code (`04-00-75`) are provisioned. On future launches, Benjamin enters this PIN to sign in (or types `R` to reset).
 
-### Possible Investigation Outcomes:
-- **Settled + uniquely matched** $\rightarrow$ Safely credited to Benjamin's balance
-- **Pending** $\rightarrow$ Wait for final rail settlement
-- **No receipt** $\rightarrow$ Provider trace opened (`WAITING_PROVIDER`)
-- **Failed / reversed** $\rightarrow$ No credit posted
-- **Ambiguous / restricted** $\rightarrow$ Routed to human payment-review team
+---
+
+### Screen 2: Customer Home Screen
+After signing in, Benjamin sees his live account balance and recent incoming transfers.
+
+```text
+========================================================================
+  RESOLVEFLOW (LENFI UK) — PERSONAL ACCOUNT HOME
+========================================================================
+  Customer:          Benjamin Chidera
+  Available Balance: £150.00
+  Account Details:   Account No: 84920101  |  Sort Code: 04-00-75
+------------------------------------------------------------------------
+  RECENT INCOMING-PAYMENT ACTIVITY:
+    1. £150.00    | From: Monzo     | Ref: MON-11223  | Credited to your account
+    2. £500.00    | From: Monzo     | Ref: MON-78291  | Awaiting allocation
+    3. £250.00    | From: Monzo     | Ref: MON-99881  | Reported missing (Unverified)
+    4. £180.00    | From: Barclays  | Ref: BARC-44910 | Awaiting rail settlement
+    5. £95.00     | From: Revolut   | Ref: REV-66201  | Not credited (Failed on rail)
+========================================================================
+  MAIN NAVIGATION:
+    1. Home
+    2. Incoming payments
+    3. Help
+    4. Log out
+    9. Reset demo data (Presenter option)
+    0. Exit
+------------------------------------------------------------------------
+```
+* **What happens**: The system queries SQLite and computes Benjamin's balance strictly from double-entry ledger legs (`sum(credits) - sum(debits)`). It starts at `£150.00` from his previously settled and allocated incoming transfer.
+
+---
+
+### Screen 3: Incoming Payments & Claims List
+Pressing `2` displays all incoming transfers and claims scoped strictly to Benjamin.
+
+```text
+========================================================================
+  INCOMING PAYMENTS & CLAIMS (BENJAMIN CHIDERA)
+========================================================================
+  [1] £150.00    | From: Monzo     | Ref: MON-11223  | Rail: Settled                      | Credited to your account
+  [2] £500.00    | From: Monzo     | Ref: MON-78291  | Rail: Settled                      | Awaiting allocation
+  [3] £250.00    | From: Monzo     | Ref: MON-99881  | Rail: No confirmed receipt         | Reported missing (Unverified)
+  [4] £180.00    | From: Barclays  | Ref: BARC-44910 | Rail: Pending                      | Awaiting rail settlement
+  [5] £95.00     | From: Revolut   | Ref: REV-66201  | Rail: Failed                       | Not credited (Failed on rail)
+  [6] £210.00    | From: HSBC      | Ref: HSBC-88319 | Rail: Reversed / Returned          | Not credited (Reversed by sender bank)
+  [7] £1,200.00  | From: Monzo     | Ref: MON-33112  | Rail: Settled (Ref verification)   | Awaiting verification
+  [0] Back to Home
+------------------------------------------------------------------------
+```
+* **What happens**: Resolves external mock rail statuses without touching external accounts. Notice payment `[2]`: the rail status is `Settled`, but account status is `Awaiting allocation` because the funds are held safely in `ACC-UNALLOCATED-SUSPENSE`.
+
+---
+
+### Screen 4: Payment Details & One-Click Safe Investigation
+Selecting payment `2` opens the detail view with plain-language explanations and actions.
+
+```text
+========================================================================
+  £500.00 incoming payment
+------------------------------------------------------------------------
+  From:           Monzo
+  Reference:      MON-78291
+  Date:           2026-11-10 11:28 UTC
+  Rail status:    Settled
+  Account status: Awaiting allocation
+  Linked Case:    #CASE-S1-001 (OPEN)
+------------------------------------------------------------------------
+  ResolveFlow has received £500.00 from Monzo (ref: MON-78291) into clearing suspense,
+  but it has not been allocated to your balance yet.
+========================================================================
+  [1] Get help with this payment (Run ResolveFlow Investigation)
+  [2] Chat with us
+  [0] Back
+
+  Select action > 1
+
+------------------------------------------------------------------------
+  INVESTIGATION UPDATE: Payment Verified & Credited
+------------------------------------------------------------------------
+  We verified your incoming £500.00 transfer from Monzo (ref: MON-78291)
+  and credited £500.00 to your ResolveFlow account (84920101).
+  Case ID: #CASE-S1-001  |  Case Status: RESOLVED  |  Available Balance: £650.00
+------------------------------------------------------------------------
+```
+* **What happens**:
+  1. The 4-node LangGraph pipeline traces the payment and verifies that `PAY-S1-001` is settled in suspense.
+  2. The **Deterministic Policy Engine** confirms all 5 financial invariants pass.
+  3. A double-entry journal entry is posted:
+     - `Debit ACC-UNALLOCATED-SUSPENSE: £500.00` (-Liability)
+     - `Credit ACC-LEN-001: £500.00` (+Customer Liability)
+     - `idempotency_key = "ALLOC-PAY-S1-001"` (physically preventing double-credit on replay)
+  4. Benjamin's live available balance increases from **£150.00** to **£650.00**.
+
+---
+
+### Screen 5: Contextual AI Agent Chat
+Selecting `[2] Chat with us` or navigating through `3. Help` opens the conversational assistant with the payment context already loaded.
+
+```text
+========================================================================
+  RESOLVEFLOW PAYMENT INVESTIGATION ASSISTANT
+========================================================================
+  Agent: Hi Benjamin, I have your selected payment in front of me: £500.00
+  from Monzo (Reference: MON-78291, Rail status: Settled, Account status: Credited).
+  Would you like me to investigate this payment now, or do you have additional details?
+------------------------------------------------------------------------
+  Type your message below (or type 'back' / '0' to return):
+
+  You > I also sent £300 from Monzo with reference MON-44331 yesterday
+
+  Agent: I recorded your details as evidence v1 and searched our incoming
+  settlement records for £300.00 with reference MON-44331 from Monzo.
+  ResolveFlow has not received a confirmed settlement receipt for this payment yet,
+  so no credit can be posted. I have opened a provider trace under Case #CASE-4FA802
+  (status: WAITING_PROVIDER).
+  [Case #CASE-4FA802 | Status: WAITING_PROVIDER | Evidence v1]
+```
+* **What happens**:
+  1. The agent extracts slot values (`£300.00`, `Monzo`, `MON-44331`).
+  2. The claim is recorded in SQLite as an **untrusted evidence clue** (`CustomerEvidenceClaim v1`), never as proof of settlement.
+  3. The agent searches clearing records and finds no matching receipt.
+  4. The system strictly refuses to credit the account and marks the case `WAITING_PROVIDER`.
+
+---
+
+### Possible Investigation Outcomes Supported by the Engine
+
+| Outcome | Trigger Condition | Engine Decision | Balance Effect |
+| :--- | :--- | :--- | :--- |
+| **Settled & Uniquely Matched** | Wire settled in suspense; reference uniquely matches active account | `AUTO_ALLOCATE` via policy engine | Reclassified from Suspense to Customer (`+£500.00`) |
+| **Pending Rail Settlement** | Rail provider event marked `PENDING` | `WAIT_AND_RECHECK` (`WAITING_PROVIDER`) | No credit; waits for final settlement |
+| **No Receipt Found** | Customer claims payment, but no wire received | `TRACE_WITH_PROVIDER` (`WAITING_PROVIDER`) | No credit; trace opened with provider |
+| **Failed / Reversed** | Rail provider event marked `FAILED` or `REVERSED` | `HUMAN_REVIEW` (Support queue) | No credit; honest status explanation |
+| **Ambiguous Beneficiary** | Wire settled in suspense, but reference matches multiple customers | `HUMAN_REVIEW` (`AWAITING_REVIEW`) | Funds held in suspense; operator disambiguates |
+| **Restricted / Frozen Account** | Target account has compliance hold | `HUMAN_REVIEW` (`AWAITING_REVIEW`) | Blocked; internal hold reasons never leaked |
+| **Duplicate Replay** | Same webhook or repeat investigation request | `IDEMPOTENT_NOOP` | No second credit; returns existing journal |
 
 ---
 
