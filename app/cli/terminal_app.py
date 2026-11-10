@@ -46,10 +46,10 @@ def _run_first_time_setup(
     output_fn: Callable[[str], None],
 ) -> Optional[CustomerAccount]:
     output_fn("\n" + LINE)
-    output_fn("  RESOLVEFLOW / LENFI UK — FIRST-TIME CUSTOMER SETUP (MVP DEMO)")
+    output_fn("  RESOLVEFLOW — FIRST-TIME CUSTOMER SETUP (MVP DEMO)")
     output_fn(LINE)
     output_fn(
-        "  Welcome to ResolveFlow (LenFi UK). Let's set up your receiving bank"
+        "  Welcome to ResolveFlow. Let's set up your receiving-bank"
     )
     output_fn(
         "  profile and choose a 4-digit PIN. (Note: Demo authentication only;"
@@ -76,7 +76,7 @@ def _run_first_time_setup(
             output_fn("  ACCOUNT SETUP CONFIRMED")
             output_fn(SUBLINE)
             output_fn(f"  Account Holder:    {account.customer_name}")
-            output_fn("  Receiving Bank:    ResolveFlow / LenFi UK")
+            output_fn("  Receiving Bank:    ResolveFlow Demo Bank")
             output_fn(f"  Account Number:    {account.account_number}")
             output_fn(f"  Sort Code:         {account.sort_code}")
             output_fn(f"  Internal Ref:      {account.account_id}")
@@ -94,7 +94,7 @@ def _run_pin_sign_in(
     output_fn: Callable[[str], None],
 ) -> Optional[CustomerAccount]:
     output_fn("\n" + LINE)
-    output_fn("  RESOLVEFLOW / LENFI UK — CUSTOMER SIGN-IN")
+    output_fn("  RESOLVEFLOW — CUSTOMER SIGN-IN")
     output_fn(LINE)
     output_fn(f"  Welcome back, {account.customer_name}")
     output_fn(
@@ -132,7 +132,7 @@ def _render_home_screen(
 ) -> None:
     summary = get_customer_home_summary(session, customer_id)
     output_fn("\n" + LINE)
-    output_fn("  RESOLVEFLOW (LENFI UK) — PERSONAL ACCOUNT HOME")
+    output_fn("  RESOLVEFLOW — PERSONAL ACCOUNT HOME")
     output_fn(LINE)
     output_fn(f"  Customer:          {summary.customer_name}")
     output_fn(f"  Available Balance: {summary.formatted_balance}")
@@ -370,7 +370,7 @@ def run_terminal_mvp(
     output_fn: Callable[[str], None] = print,
 ) -> None:
     """
-    Main loop for the ResolveFlow / LenFi UK receiving-bank terminal MVP.
+    Main loop for the ResolveFlow receiving-bank terminal MVP.
     Accepts injectable `session`, `input_fn`, and `output_fn` for deterministic testing.
     """
     owns_session = session is None
@@ -394,7 +394,7 @@ def run_terminal_mvp(
                     )
 
                 if logged_in_account is None:
-                    output_fn("\n  Thank you for using ResolveFlow (LenFi UK). Goodbye!\n")
+                    output_fn("\n  Thank you for using ResolveFlow. Goodbye!\n")
                     return
 
             # Step 2: Customer Home Screen & Navigation
@@ -404,7 +404,7 @@ def run_terminal_mvp(
             nav = input_fn("  Select option (1-4, 9, or 0) > ").strip()
 
             if nav == "0":
-                output_fn("\n  Thank you for using ResolveFlow (LenFi UK). Goodbye!\n")
+                output_fn("\n  Thank you for using ResolveFlow. Goodbye!\n")
                 return
             if nav == "1":
                 continue

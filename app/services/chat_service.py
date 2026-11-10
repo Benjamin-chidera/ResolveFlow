@@ -532,7 +532,7 @@ def handle_customer_message(
             needed_prompts.append("the sending bank name")
 
         agent_reply = (
-            f"I have your LenFi {', '.join(known_parts)}. "
+            f"I have your ResolveFlow account details: {', '.join(known_parts)}. "
             f"To trace this transfer immediately, could you please share {' and '.join(needed_prompts)}?"
         )
         agent_msg_id = f"MSG-{uuid4().hex[:8].upper()}"

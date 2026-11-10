@@ -10,7 +10,7 @@ def get_utc_now() -> datetime:
 
 
 class CustomerAccount(SQLModel, table=True):
-    """Customer bank account entity at ResolveFlow / LenFi UK."""
+    """Customer bank account entity at the ResolveFlow receiving-bank demo."""
 
     __tablename__ = "customers_accounts"
 

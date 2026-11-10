@@ -1,8 +1,8 @@
 # ResolveFlow AI — Receiving-Bank Incoming Payment Investigation MVP
 
-**ResolveFlow AI** models a receiving bank (**ResolveFlow / LenFi UK**) investigating missing incoming customer transfers. Customers log in to check whether incoming payments sent from external banks (such as Monzo, Barclays, Revolut, or HSBC) have arrived in their ResolveFlow account, inspect payment statuses, and get help from an evidence-grounded investigation agent.
+**ResolveFlow AI** is a bank-neutral receiving-bank demonstration for investigating missing incoming customer transfers. It can be presented to any bank or financial institution: customers log in to check whether payments sent from external banks have arrived, inspect payment statuses, and get help from an evidence-grounded investigation agent.
 
-External banks and payment rails are modelled strictly as mock evidence sources (`SETTLED`, `PENDING`, `FAILED`, `REVERSED`, or no confirmed receipt).
+External banks and payment rails are modelled strictly as interchangeable mock evidence sources (`SETTLED`, `PENDING`, `FAILED`, `REVERSED`, or no confirmed receipt). The seeded bank names are example data only, not product integrations or endorsements.
 
 ---
 
